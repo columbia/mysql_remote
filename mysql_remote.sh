@@ -34,7 +34,10 @@ function mysql_remote_test()
 	POWEROUT=/tmp
 
 	# Exec
+	mkdir -p tmp
 	rm -f tmp/time.txt
+	rm -f tmp/total_time.txt
+	rm -f tmp/avg_time.txt
 	touch tmp/time.txt
 	touch tmp/total_time.txt
 	touch tmp/avg_time.txt
@@ -55,10 +58,10 @@ function mysql_remote_test()
 	echo ""
 
 	# Output in nice format as well
-	echo -en "MySQL (${remote}) $num_threads threads total time\t" >> $OUTFILE
+	echo -en "MySQL (${remote}) \t$num_threads threads\ttotal time\t" >> $OUTFILE
 	cat tmp/total_time.txt | tr '\n' '\t' >> $OUTFILE
 	echo >> $OUTFILE
-	echo -en "MySQL (${remote}) $num_threads threads avg time\t" >> $OUTFILE
+	echo -en "MySQL (${remote}) \t$num_threads threads\tavg time\t" >> $OUTFILE
 	cat tmp/avg_time.txt | tr '\n' '\t' >> $OUTFILE
 	echo >> $OUTFILE
 

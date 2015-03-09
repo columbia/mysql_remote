@@ -61,6 +61,7 @@ fi
 # Environment
 IFS=$(echo -en "\n\t ")
 LOGFILE=tmp/log
+touch LOGFILE
 
 # Select a good results file name
 _OFN=1
