@@ -1,4 +1,4 @@
-
+#!/bin/bash
 source setup.sh
 TABLE_SIZE=1000000
 RAW_OUTPUT=tmp/raw.log
@@ -20,7 +20,7 @@ function mysql_remote_test()
 	echo "[Server] Prep"
 	sed "s/remote/$clientIP/g" create_db_remote.sql > create_db_remote_tmp.sql
 	$SCP *.sql root@$remote:/tmp/.
-	ssh root@$remote "service mysql start" | tee -a $LOGFILE
+	ssh root@$remote "service mysql restart" | tee -a $LOGFILE
 	ssh root@$remote "mysql -u root --password=kvm < /tmp/create_db_remote_tmp.sql" | tee -a $LOGFILE
 
 	echo "[Client] Make sure mysql and sysbench are installed and disabled"
