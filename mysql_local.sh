@@ -15,7 +15,7 @@ function init()
 
 	sudo service mysql restart
 	mysql -u root --password=kvm < create_db_local.sql | tee -a $LOGFILE
-	sysbench --test=oltp --mysql-password=kvm --oltp-table-size=$TABLE_SIZE prepare | tee -a $LOGFILE
+	sysbench --test=oltp --mysql-table-engine=myisam --mysql-password=kvm --oltp-table-size=$TABLE_SIZE prepare | tee -a $LOGFILE
 
 	mkdir -p tmp
 
@@ -26,8 +26,7 @@ function finish()
 	sysbench --test=oltp --mysql-password=kvm cleanup| tee -a $LOGFILE
 	mysql -u root --password=kvm < drop_db.sql | tee -a $LOGFILE
 
-#	echo $OUT_FILE
-#	cat $OUT_FILE
+	echo $OUTFILE
 }
 
 function mysql_local_test()
@@ -42,7 +41,7 @@ function mysql_local_test()
 	num_threads=$1	
 		
 	for i in `seq 1 $REPTS`; do
-		sysbench --test=oltp --mysql-password=kvm --oltp-table-size=$TABLE_SIZE --num-threads=$num_threads run | tee  $RAW_OUTPUT 
+		sysbench --test=oltp --mysql-table-engine=myisam --mysql-password=kvm --oltp-table-size=$TABLE_SIZE --num-threads=$num_threads run | tee  $RAW_OUTPUT 
 		grep 'total time:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/s//' >> TOTAL
 		grep 'avg:' $RAW_OUTPUT | awk '{ print $2 }' | sed 's/ms//' >> AVG
 		grep 'transactions:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/(//' >> TRAN
@@ -59,7 +58,6 @@ function mysql_local_test()
 	cat TRAN | tr '\n' '\t' >> $OUTFILE
 	echo >> $OUTFILE
 }
-
 
 init
 until [ -z "$1" ]  # Until all parameters used up . . .
