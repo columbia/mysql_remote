@@ -38,14 +38,17 @@ function mysql_remote_test()
 	rm -f tmp/time.txt
 	rm -f tmp/total_time.txt
 	rm -f tmp/avg_time.txt
+	rm -f tmp/transaction.txt
 	touch tmp/time.txt
 	touch tmp/total_time.txt
 	touch tmp/avg_time.txt
+	touch tmp/transaction.txt
 	
 	for i in `seq 1 $REPTS`; do
 		sysbench --test=oltp --mysql-password=kvm --oltp-table-size=$TABLE_SIZE --mysql-host=$remote --num-threads=$num_threads run | tee  $RAW_OUTPUT 
 		grep 'total time:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/s//' >> tmp/total_time.txt
 		grep 'avg:' $RAW_OUTPUT | awk '{ print $2 }' | sed 's/ms//' >> tmp/avg_time.txt
+		grep 'transactions:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/(//' >> tmp/transaction.txt
 	done;
 
 	# Cleanup
@@ -63,6 +66,9 @@ function mysql_remote_test()
 	echo >> $OUTFILE
 	echo -en "MySQL (${remote}) \t$num_threads threads\tavg time\t" >> $OUTFILE
 	cat tmp/avg_time.txt | tr '\n' '\t' >> $OUTFILE
+	echo >> $OUTFILE
+	echo -en "MySQL (${remote}) \t$num_threads threads\ttransaction\t" >> $OUTFILE
+	cat tmp/transaction.txt | tr '\n' '\t' >> $OUTFILE
 	echo >> $OUTFILE
 
 	#ssh root@$remote "service mysql stop" | tee -a $LOGFILE
