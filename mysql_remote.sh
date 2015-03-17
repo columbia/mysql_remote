@@ -8,9 +8,9 @@ function mysql_remote_test()
 	num_threads=$1	
 	remote=$HOST	# dns/ip for machine to test
 	if [ "$NET" = "private" ]; then
-        	clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|128' | cut -d: -f2 | awk '{ print $1}')
+        	clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|:128' | cut -d: -f2 | awk '{ print $1}')
 	else
-		clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|10' | cut -d: -f2 | awk '{ print $1}')
+		clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|:10' | cut -d: -f2 | awk '{ print $1}')
 	fi
 	echo $remote
 	echo "Client IP is $clientIP"
