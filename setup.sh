@@ -7,6 +7,8 @@ else
 	HOST="seattle2.cs.columbia.edu"
 	WEBHOST="webserver"
 	REPTS="10"
+	USER="root"
+	NET="private"
 
 	echo -n "What's the architecture? [$TESTARCH]:"
 	read _TESTARCH
@@ -34,11 +36,24 @@ else
 	if [[ -n "$_REPTS" ]]; then
 		REPTS="$_REPTS"
 	fi
+	
+	echo -n "Username? [$USER]:"
+	read _USER
+	if [[ -n "$_USER" ]]; then
+		USER="$_USER"
+	fi
+        echo -n "Network? [$NET]:"
+        read _NET
+        if [[ -n "$_NET" ]]; then
+                USER="$_NET"
+        fi
+
 
 	echo "TESTARCH=\"$TESTARCH\"" > .localconf
 	echo "HOST=\"$HOST\"" >> .localconf
 	echo "WEBHOST=\"$WEBHOST\"" >> .localconf
 	echo "REPTS=\"$REPTS\"" >> .localconf
+	echo "USER=\"$USER\"" >> .localconf
 fi
 
 echo ""

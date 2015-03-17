@@ -1,27 +1,31 @@
 #!/bin/bash
 source setup.sh
 TABLE_SIZE=1000000
-RAW_OUTPUT=tmp/raw.log
+RAW_OUTPUT=/tmp/raw.log
 
 function mysql_remote_test()
 {
 	num_threads=$1	
 	remote=$HOST	# dns/ip for machine to test
-        clientIP=$(ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}')
-
+	if [ "$NET" = "private" ]; then
+        	clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|128' | cut -d: -f2 | awk '{ print $1}')
+	else
+		clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|10' | cut -d: -f2 | awk '{ print $1}')
+	fi
+	echo $remote
 	echo "Client IP is $clientIP"
 	echo "[Server] Make sure mysql and sysbench are installed and disabled"
-	ssh root@$remote "cat > /tmp/i.sh && chmod a+x /tmp/i.sh && /tmp/i.sh" < mysql_install.sh | \
+	ssh $USER@$remote "cat > /tmp/i.sh && chmod a+x /tmp/i.sh && /tmp/i.sh" < mysql_install.sh | \
 		tee -a $LOGFILE
 	
 	echo "[Server] Allow remote access to mysql"
-	ssh root@$remote sed -i 's/^bind/#bind/g' /etc/mysql/my.cnf
+	ssh $USER@$remote sudo sed -i 's/^bind/#bind/g' /etc/mysql/my.cnf
 
 	echo "[Server] Prep"
 	sed "s/remote/$clientIP/g" create_db_remote.sql > create_db_remote_tmp.sql
-	$SCP *.sql root@$remote:/tmp/.
-	ssh root@$remote "service mysql restart" | tee -a $LOGFILE
-	ssh root@$remote "mysql -u root --password=kvm < /tmp/create_db_remote_tmp.sql" | tee -a $LOGFILE
+	$SCP *.sql $USER@$remote:/tmp/.
+	ssh $USER@$remote "sudo service mysql restart" | tee -a $LOGFILE
+	ssh $USER@$remote "mysql -u root --password=kvm < /tmp/create_db_remote_tmp.sql" | tee -a $LOGFILE
 
 	echo "[Client] Make sure mysql and sysbench are installed and disabled"
 	chmod +x mysql_install.sh
@@ -53,7 +57,7 @@ function mysql_remote_test()
 
 	# Cleanup
 	sysbench --test=oltp --mysql-password=kvm --mysql-host=$remote cleanup| tee -a $LOGFILE
-	ssh root@$remote "mysql -u root --password=kvm < /tmp/drop_db.sql" | tee -a $LOGFILE
+	ssh $USER@$remote "mysql -u root --password=kvm < /tmp/drop_db.sql" | tee -a $LOGFILE
 
 	# Get time stats
 	echo "Requests per second" >> $LOGFILE
@@ -71,7 +75,7 @@ function mysql_remote_test()
 	cat tmp/transaction.txt | tr '\n' '\t' >> $OUTFILE
 	echo >> $OUTFILE
 
-	#ssh root@$remote "service mysql stop" | tee -a $LOGFILE
+	ssh $USER@$remote "service mysql stop" | tee -a $LOGFILE
 	MYSQL_STARTED=""
 }
 
