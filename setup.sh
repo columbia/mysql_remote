@@ -45,7 +45,7 @@ else
         echo -n "Network? [$NET]:"
         read _NET
         if [[ -n "$_NET" ]]; then
-                USER="$_NET"
+                NET="$_NET"
         fi
 
 
@@ -54,6 +54,8 @@ else
 	echo "WEBHOST=\"$WEBHOST\"" >> .localconf
 	echo "REPTS=\"$REPTS\"" >> .localconf
 	echo "USER=\"$USER\"" >> .localconf
+	echo "NET=\"$NET\"" >> .localconf
+	
 fi
 
 echo ""
