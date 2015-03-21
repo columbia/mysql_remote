@@ -77,7 +77,7 @@ function mysql_remote_test()
 	cat tmp/transaction.txt | tr '\n' '\t' >> $OUTFILE
 	echo >> $OUTFILE
 
-	ssh $USER@$remote "service mysql stop" | tee -a $LOGFILE
+	ssh $USER@$remote "sudo service mysql stop" | tee -a $LOGFILE
 	MYSQL_STARTED=""
 }
 
