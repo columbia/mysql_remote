@@ -5,7 +5,7 @@ RAW_OUTPUT=/tmp/raw.log
 
 function mysql_remote_test()
 {
-	num_threads=$1	
+	#num_threads=$1	
 	remote=$HOST	# dns/ip for machine to test
 	if [ "$NET" = "private" ]; then
         	clientIP=$(ifconfig  | grep 'inet addr:'| egrep -v '127.0.0.1|:128' | cut -d: -f2 | awk '{ print $1}')
@@ -48,11 +48,13 @@ function mysql_remote_test()
 	touch tmp/avg_time.txt
 	touch tmp/transaction.txt
 	
+	for num_threads in $@; do
 	for i in `seq 1 $REPTS`; do
 		sysbench --test=oltp --mysql-password=kvm --oltp-table-size=$TABLE_SIZE --mysql-host=$remote --num-threads=$num_threads run | tee  $RAW_OUTPUT 
 		grep 'total time:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/s//' >> tmp/total_time.txt
 		grep 'avg:' $RAW_OUTPUT | awk '{ print $2 }' | sed 's/ms//' >> tmp/avg_time.txt
 		grep 'transactions:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/(//' >> tmp/transaction.txt
+	done;
 	done;
 
 	# Cleanup
@@ -79,9 +81,9 @@ function mysql_remote_test()
 	MYSQL_STARTED=""
 }
 
-until [ -z "$1" ]  # Until all parameters used up . . .
-do
-	mysql_remote_test $1
-	shift
-done
+#until [ -z "$1" ]  # Until all parameters used up . . .
+#do
+	mysql_remote_test $@
+#	shift
+#done
 
