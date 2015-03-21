@@ -38,44 +38,46 @@ function mysql_remote_test()
 	POWEROUT=/tmp
 
 	# Exec
-	mkdir -p tmp
-	rm -f tmp/time.txt
-	rm -f tmp/total_time.txt
-	rm -f tmp/avg_time.txt
-	rm -f tmp/transaction.txt
-	touch tmp/time.txt
-	touch tmp/total_time.txt
-	touch tmp/avg_time.txt
-	touch tmp/transaction.txt
-	
 	for num_threads in $@; do
-	for i in `seq 1 $REPTS`; do
-		sysbench --test=oltp --mysql-password=kvm --oltp-table-size=$TABLE_SIZE --mysql-host=$remote --num-threads=$num_threads run | tee  $RAW_OUTPUT 
-		grep 'total time:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/s//' >> tmp/total_time.txt
-		grep 'avg:' $RAW_OUTPUT | awk '{ print $2 }' | sed 's/ms//' >> tmp/avg_time.txt
-		grep 'transactions:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/(//' >> tmp/transaction.txt
-	done;
+		mkdir -p tmp
+		rm -f tmp/time.txt
+		rm -f tmp/total_time.txt
+		rm -f tmp/avg_time.txt
+		rm -f tmp/transaction.txt
+		touch tmp/time.txt
+		touch tmp/total_time.txt
+		touch tmp/avg_time.txt
+		touch tmp/transaction.txt
+
+		for i in `seq 1 $REPTS`; do
+			sysbench --test=oltp --mysql-password=kvm --oltp-table-size=$TABLE_SIZE --mysql-host=$remote --num-threads=$num_threads run | tee  $RAW_OUTPUT 
+			grep 'total time:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/s//' >> tmp/total_time.txt
+			grep 'avg:' $RAW_OUTPUT | awk '{ print $2 }' | sed 's/ms//' >> tmp/avg_time.txt
+			grep 'transactions:' $RAW_OUTPUT | awk '{ print $3 }' | sed 's/(//' >> tmp/transaction.txt
+		done;
+
+		# Get time stats
+		echo "Requests per second" >> $LOGFILE
+		tr '\n' '\t' < tmp/time.txt
+		echo ""
+
+		# Output in nice format as well
+		echo -en "MySQL (${remote}) \t$num_threads threads\ttotal time\t" >> $OUTFILE
+		cat tmp/total_time.txt | tr '\n' '\t' >> $OUTFILE
+		echo >> $OUTFILE
+		echo -en "MySQL (${remote}) \t$num_threads threads\tavg time\t" >> $OUTFILE
+		cat tmp/avg_time.txt | tr '\n' '\t' >> $OUTFILE
+		echo >> $OUTFILE
+		echo -en "MySQL (${remote}) \t$num_threads threads\ttransaction\t" >> $OUTFILE
+		cat tmp/transaction.txt | tr '\n' '\t' >> $OUTFILE
+		echo >> $OUTFILE
+
 	done;
 
 	# Cleanup
 	sysbench --test=oltp --mysql-password=kvm --mysql-host=$remote cleanup| tee -a $LOGFILE
 	ssh $USER@$remote "mysql -u root --password=kvm < /tmp/drop_db.sql" | tee -a $LOGFILE
 
-	# Get time stats
-	echo "Requests per second" >> $LOGFILE
-	tr '\n' '\t' < tmp/time.txt
-	echo ""
-
-	# Output in nice format as well
-	echo -en "MySQL (${remote}) \t$num_threads threads\ttotal time\t" >> $OUTFILE
-	cat tmp/total_time.txt | tr '\n' '\t' >> $OUTFILE
-	echo >> $OUTFILE
-	echo -en "MySQL (${remote}) \t$num_threads threads\tavg time\t" >> $OUTFILE
-	cat tmp/avg_time.txt | tr '\n' '\t' >> $OUTFILE
-	echo >> $OUTFILE
-	echo -en "MySQL (${remote}) \t$num_threads threads\ttransaction\t" >> $OUTFILE
-	cat tmp/transaction.txt | tr '\n' '\t' >> $OUTFILE
-	echo >> $OUTFILE
 
 	ssh $USER@$remote "sudo service mysql stop" | tee -a $LOGFILE
 	MYSQL_STARTED=""
