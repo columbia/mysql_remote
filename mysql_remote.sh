@@ -1,7 +1,7 @@
 #!/bin/bash
 source setup.sh
 TABLE_SIZE=1000000
-RAW_OUTPUT=/tmp/raw.log
+RAW_OUTPUT=tmp/raw.log
 
 function mysql_remote_test()
 {
@@ -40,10 +40,12 @@ function mysql_remote_test()
 	# Exec
 	for num_threads in $@; do
 		mkdir -p tmp
+		rm -f $RAW_OUTPUT
 		rm -f tmp/time.txt
 		rm -f tmp/total_time.txt
 		rm -f tmp/avg_time.txt
 		rm -f tmp/transaction.txt
+		touch $RAW_OUTPUT
 		touch tmp/time.txt
 		touch tmp/total_time.txt
 		touch tmp/avg_time.txt
